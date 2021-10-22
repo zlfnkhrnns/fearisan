@@ -14,6 +14,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import { spacing } from '@material-ui/system';
 import Box from '@material-ui/core/Box';
 import Image from 'material-ui-image';
+import axios from "axios";
 
 const useStyles = makeStyles((theme) => ({
   formControl: {
@@ -30,56 +31,73 @@ function toNormalCase(str) {
 }
 
 export default function FormDialog(props) {
-  const { form, handleChange, setForm } = useForm({
-    nama: '',
-    gambar: 'image'
+  const [image, setImage] = useState({
+    gambar :[],
+    preview:null
   });
+  const [ form, setForm] = useState({
+    nama: ''
+  });
+
+  const handleChange = (e) => {
+    e.persist();
+    setForm((form) => ({ ...form, [e.target.name]: e.target.value,  }));
+  };
 
   React.useEffect(() => {
     setForm({
-      ...props.detail
+      ...props.edit
     });
-  }, [props.detail]);
+  }, [props.edit]);
 
   const form_name = Object.keys(form).filter(x => x !== "tableData");
   const classes = useStyles();
-  const [image, setImage] = useState('');
 
-  const handleCapture = ({ target }) => {
-    const fileReader = new FileReader();
-    const name = target.accept.includes('image') ? 'images' : 'audio';
+  const handleImage = (e) => {
+    setImage({
+      ...image, gambar: e.target.files[0], preview:URL.createObjectURL(e.target.files[0]),
+    })
+  }
+  
+  const onSubmit = (e) => {
+    e.preventDefault();
 
-    fileReader.readAsDataURL(target.files[0]);
-    fileReader.onload = (e) => {
-      if (name == 'images') {
-        setImage(e.target.result)
-      } else {
-        setAudio(e.target.result)
-      }
-    };
+    const bodyFormData = new FormData();
+    bodyFormData.append('nama', form.nama);
+    bodyFormData.append('gambar', image.gambar);
+    console.log('bodyForm', bodyFormData)
+    axios({
+      method: "put",
+      url: "http://localhost:3001/Kategori/"+props.edit.idKategori,
+      data: bodyFormData,
+      headers:{"Content-Type":"multipart/form-data"},
+    })
+      .catch((err) => {
+        console.log(err);
+        alert("Terjadi kesalahan, Reload aplikasi!");
+      });
   };
 
   return (
     <div>
       <Dialog open={props.open} onClose={props.handleClose} aria-labelledby="edit-dialog-title">
-        <form onSubmit={(e) => props.handleSubmit(e, form)}>
+        <form onSubmit={(e) => onSubmit(e)}>
           <DialogTitle id="edit-dialog-title" style={{ color: '#4C27D7' }}>Edit Kategori</DialogTitle>
           <DialogContent>
-            {/* {JSON.stringify(detail)} */}
-            {/* {JSON.stringify(form)} */}
             <Grid container spacing={2}>
               {form_name.filter(x => x !== "kategori").map(f => {    
                   return (
-                    <Grid item xs={f === "indeks" ? 12 : 6} key={f}>
+                    <Grid item xs={f === "kategori" ? 12 : 6} key={f}>
                       <TextField
                         margin="dense"
                         id={toNormalCase(f)}
-                        label={f === "indeksId" ? "ID Kategori" : toNormalCase(f)}
+                        label={f === "idKategori" ? "ID Kategori" : toNormalCase(f)}
                         value={form[f]}
                         name={f}
-                        onChange={handleChange}
+                        onChange={(e) =>handleChange(e)}
                         fullWidth
-                        disabled={f === "idKategori"}
+                        required
+                        disabled={f === "idKategori" || f === "gambar"}
                       />
                     </Grid>
                   )
@@ -88,23 +106,23 @@ export default function FormDialog(props) {
             <Box p={1} m={-1}>
                 <Box width={1} p={1} m={-1} my={1}>
                   <InputLabel>
-                    Foto *
+                    Gambar *
                   </InputLabel>
                 </Box>
-                {image ? <Image my={1}
-                  src={image}
+                {image.preview !== null ? <Image my={1}
+                  src={image.preview}
                 /> : null}
                 <Button
                   variant="contained"
                   component="label"
                 >
                   Pilih Gambar
-                  <input
-                    accept="image/*"
-                    type="file"
-                    onChange={handleCapture}
-                    name={'foto'}
-                    hidden />
+                  {image.gambar !== null ?
+                    <input accept="image/*" type="file" onChange={(e) => handleImage(e)}
+                    name={'gambar'}
+                    hidden /> : props.edit.gambar
+                }
+                  
                 </Button>
               </Box>
           </DialogContent>
@@ -112,7 +130,7 @@ export default function FormDialog(props) {
             <Button onClick={props.handleClose} color="primary">
               Batal
           </Button>
-            <Button type="submit" color="primary" variant="contained">
+            <Button onClick={props.handleClose} type="submit" color="primary" variant="contained">
               Edit
           </Button>
           </DialogActions>

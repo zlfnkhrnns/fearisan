@@ -16,7 +16,6 @@ import PhotoCamera from '@material-ui/icons/PhotoCamera';
 import { spacing } from '@material-ui/system';
 import Box from '@material-ui/core/Box';
 import Image from 'material-ui-image';
-import axios from "axios";
 
 const useStyles = makeStyles((theme) => ({
   formControl: {
@@ -34,46 +33,26 @@ function toNormalCase(str) {
 }
 
 export default function FormDialog(props)  {
-  const [image, setImage] = useState({
-    gambar :[],
-    preview:null
+  const [image, setImage] = useState('');
+  const { form, handleChange } = useForm({
+    nama: "",
+    gambar: image
   });
-
-  const [form, setForm] = useState({
-    nama: ""
-  })
-  const handleChange = (e) => {
-    e.persist();
-    setForm((form) => ({ ...form, [e.target.name]: e.target.value,  }));
-  };
    
   const form_name = Object.keys(form);
   const classes = useStyles();
 
-  const handleImage = (e) => {
-    setImage({
-      ...image, gambar: e.target.files[0], preview:URL.createObjectURL(e.target.files[0]),
-    })
-  }
+  const handleCapture = ({ target }) => {
+    const fileReader = new FileReader();
+    const name = target.accept.includes('image') ? 'images' : 'audio';
 
-  const onSubmit = (e) => {
-    e.preventDefault();
-
-    const bodyFormData = new FormData();
-    bodyFormData.append('nama', form.nama);
-    bodyFormData.append('gambar', image.gambar);
-    console.log('bodyForm', bodyFormData)
-    axios({
-      method: "post",
-      url: "http://localhost:3001/Kategori/",
-      data: bodyFormData,
-      headers:{"Content-Type":"multipart/form-data"},
-    })
-      .catch((err) => {
-        console.log(err);
-        alert("Terjadi kesalahan, Reload aplikasi!");
-      });
-  }
+    fileReader.readAsDataURL(target.files[0]);
+    fileReader.onload = (e) => {
+      if (name == 'images') {
+        setImage(e.target.result)
+      }
+    };
+  };
 
   return (
     <div>
@@ -82,7 +61,10 @@ export default function FormDialog(props)  {
         onClose={props.handleClose}
         aria-labelledby="form-dialog-title">
         <form
-          onSubmit={(e) => onSubmit(e)}>
+          onSubmit={(e) => {
+            console.log(form);
+            props.handleSubmit(e, form);
+          }}>
           <DialogTitle id="form-dialog-title" style={{ color: "#4C27D7" }}>
             Tambah Kategori
           </DialogTitle>
@@ -99,8 +81,9 @@ export default function FormDialog(props)  {
                           label={
                             f === "idKategori" ? "ID Kategori" : toNormalCase(f)
                           }
+                          value={form[f]}
                           name={f}
-                          onChange={(e) =>handleChange(e)}
+                          onChange={handleChange}
                           fullWidth
                           required/>
                       </Grid>
@@ -114,8 +97,8 @@ export default function FormDialog(props)  {
                     Gambar *
                   </InputLabel>
                 </Box>
-                {image.preview !== null ? <Image my={1}
-                  src={image.preview}
+                {image ? <Image my={1}
+                  src={image}
                 /> : null}
                 <Button
                   variant="contained"
@@ -124,10 +107,9 @@ export default function FormDialog(props)  {
                   <input
                     accept="image/*"
                     type="file"
-                    onChange={(e) => handleImage(e)}
+                    onChange={handleCapture}
                     name={'gambar'}
-                    hidden 
-                    required/>
+                    hidden />
                 </Button>
               </Box>
             </Grid>
@@ -136,7 +118,7 @@ export default function FormDialog(props)  {
             <Button onClick={props.handleClose} color="primary">
               Batal
             </Button>
-            <Button onClick={props.handleClose} type="submit" color="primary" variant="contained">
+            <Button type="submit" color="primary" variant="contained">
               Tambah
             </Button>
           </DialogActions>

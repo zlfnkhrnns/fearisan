@@ -11,11 +11,12 @@ import FormControl from "@material-ui/core/FormControl";
 import NativeSelect from "@material-ui/core/NativeSelect";
 import InputLabel from "@material-ui/core/InputLabel";
 import { makeStyles } from "@material-ui/core/styles";
+import IconButton from '@material-ui/core/IconButton';
+import PhotoCamera from '@material-ui/icons/PhotoCamera';
+import { spacing } from '@material-ui/system';
 import Box from '@material-ui/core/Box';
 import Image from 'material-ui-image';
 import AudioPlayer from 'material-ui-audio-player';
-import axios from "axios";
-import moment from 'moment';
 
 const useStyles = makeStyles((theme) => ({
   formControl: {
@@ -33,81 +34,42 @@ function toNormalCase(str) {
 }
 
 export default function FormDialog(props)  {
-  const [date, setDate] = useState(
-    moment(new Date()).format("YYYY-MM-DD")
-  );
-  const [image, setImage] = useState({
-    foto :[],
-    preview:null
-  });
-  const [audio, setAudio] = useState({
-    rekaman :[],
-    preview:null
-  });
-  const [form, setForm] = useState({
+  const [image, setImage] = useState('');
+  const [audio, setAudio] = useState('');
+  const { form, handleChange } = useForm({
     kategoriId: "",
+    //indeksId: "",
     namaNarator: "",
     namaInterview: "",
     judulSejarah: "",
     tempatInterview: "",
-    //tanggalInterview: "",
+    tanggalInterview: "",
     volume: "",
     copyright: "",
+    rekaman: audio,
+    foto: image,
     download: "",
     indeks: ""
   });
-  const handleChange = (e) => {
-    e.persist();
-    setForm((form) => ({ ...form, [e.target.name]: e.target.value,  }));
-  };
+  
   
   const form_name = Object.keys(form);
   const classes = useStyles();
 
-  const handleImage = (e) => {
-    setImage({
-      ...image, foto: e.target.files[0], preview:URL.createObjectURL(e.target.files[0]),
-    })
-  }
+  // const handleCapture = ({ target }) => {
+  //   const fileReader = new FileReader();
+  //   const name = target.accept.includes('image') ? 'images' : 'audio';
 
-  const handleAudio = (e) => {
-    setAudio({
-      ...audio, rekaman: e.target.files[0], preview:URL.createObjectURL(e.target.files[0]),
-    })
-  }
-  const handleChangeDate = e => {
-    setDate(e.target.value);
- };
+  //   fileReader.readAsDataURL(target.files[0]);
+  //   fileReader.onload = (e) => {
+  //     if (name == 'images') {
+  //       setImage(e.target.result)
+  //     } else {
+  //       setAudio(e.target.result)
+  //     }
+  //   };
+  // };
 
-  const onSubmit = (e) => {
-    e.preventDefault();
-
-    const bodyFormData = new FormData();
-    bodyFormData.append('kategoriId', form.kategoriId);
-    bodyFormData.append('namaNarator', form.namaNarator);
-    bodyFormData.append('namaInterview', form.namaInterview);
-    bodyFormData.append('judulSejarah', form.judulSejarah);
-    bodyFormData.append('tempatInterview', form.tempatInterview);
-    bodyFormData.append('tanggalInterview', date);
-    bodyFormData.append('volume', form.volume);
-    bodyFormData.append('copyright', form.copyright);
-    bodyFormData.append('download', form.download);
-    bodyFormData.append('indeks', form.indeks);
-    bodyFormData.append('foto', image.foto);
-    bodyFormData.append('rekaman', audio.rekaman);
-    console.log('bodyForm', bodyFormData)
-    axios({
-      method: "post",
-      url: "http://localhost:3001/List/",
-      data: bodyFormData,
-      headers:{"Content-Type":"multipart/form-data"},
-    })
-      .catch((err) => {
-        console.log(err);
-        alert("Terjadi kesalahan, Reload aplikasi!");
-      });
-  }
-  
   return (
     <div>
       <Dialog
@@ -115,7 +77,10 @@ export default function FormDialog(props)  {
         onClose={props.handleClose}
         aria-labelledby="form-dialog-title">
         <form
-          onSubmit={(e) => onSubmit(e)}>
+          onSubmit={(e) => {
+            console.log(form);
+            props.handleSubmit(e, form);
+          }}>
           <DialogTitle id="form-dialog-title" style={{ color: "#4C27D7" }}>Tambah List Sejarah</DialogTitle>
           <DialogContent>
             <Grid container spacing={2}>
@@ -136,11 +101,13 @@ export default function FormDialog(props)  {
                             }
                             value={form[f]}
                             name={f}
-                            onChange={(e) =>handleChange(e)}
-                            className={classes.selectEmpty}>
-                          <option value=""> Silahkan pilih </option>
+                            onChange={handleChange}
+                            className={classes.selectEmpty}
+                          >
+                          <option value="">Silahkan pilih</option>
                             {props.kategori.map((k) => (
-                              <option value={k.idKategori}>{k.nama}</option>))}
+                              <option value={k.idKategori}>{k.nama}</option>
+                            ))}
                           </NativeSelect>
                         </FormControl>
                       </Grid> 
@@ -152,41 +119,30 @@ export default function FormDialog(props)  {
                           margin="dense"
                           id={toNormalCase(f)}
                           label={
-                            f === "idSejarah" ? "ID Sejarah" : toNormalCase(f)}
+                            f === "idSejarah" ? "ID Sejarah" : toNormalCase(f)
+                          }
                           value={form[f]}
                           name={f}
-                          onChange={(e) =>handleChange(e)}
+                          onChange={handleChange}
                           fullWidth
-                          required={f !== "download" || f !== "foto" || f !== "rekaman"}
+                          required
                           multiline={f === "indeks"}
-                          rows={4}/>
+                          rows={4}
+                        />
                       </Grid>
                     );
                   }
-                }
-                )}
+                })}
             </Grid>
-            <TextField
-              name="tanggalInterview"
-              id="tanggalInterview"
-              label="Tanggal Interview"
-              type="date"
-              InputLabelProps={{ shrink: true }}
-              value={date}
-              onChange={(e) => handleChangeDate(e)}
-              //fullWidth
-              required
-            />
             <Grid item xs={12}>
               <Box width={1} p={1} m={-1} my={1}>
                 <InputLabel>
                   Rekaman *
                 </InputLabel>
               </Box>
-              {audio.preview !== null ?
+              {audio ?
               <Box paddingLeft={2}>
                 <AudioPlayer
-                  Audio my={1}
                   elevation={1}
                   width="100%"
                   variation="default"
@@ -194,50 +150,58 @@ export default function FormDialog(props)  {
                   download={true}
                   autoplay={false}
                   order="standart"
-                  src={audio.preview}/>
+                  src={audio}
+                />
               </Box> : null}
               <Box marginTop={3}>
                 <Button
                   variant="contained"
-                  component="label">
+                  component="label"
+                >
                   Pilih Rekaman
                   <input
                     accept="audio/*"
+                    className={classes.input}
+                    id="contained-button-file"
                     multiple
-                    onChange={(e) => handleAudio(e)}
+                    onChange={handleCapture}
                     type="file"
-                    name={'rekaman'}
-                    hidden/>
+                    hidden />
                 </Button>
               </Box>
+
               <Box p={1} m={-1}>
                 <Box width={1} p={1} m={-1} my={1}>
                   <InputLabel>
                     Foto *
                   </InputLabel>
                 </Box>
-                {image.preview !== null ? <Image my={1}
-                  src={image.preview}
+                {image ? <Image my={1}
+                  src={image}
                 /> : null}
                 <Button
                   variant="contained"
-                  component="label">
+                  component="label"
+                >
                   Pilih Foto
                   <input
                     accept="image/*"
                     type="file"
-                    onChange={(e) => handleImage(e)}
+                    onChange={handleCapture}
                     name={'foto'}
                     hidden />
                 </Button>
+
               </Box>
             </Grid>
           </DialogContent>
+          
+
           <DialogActions>
             <Button onClick={props.handleClose} color="primary">
               Batal
             </Button>
-            <Button onClick={props.handleClose} type="submit" color="primary" variant="contained">
+            <Button type="submit" color="primary" variant="contained">
               Tambah
             </Button>
           </DialogActions>

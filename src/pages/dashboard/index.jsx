@@ -46,22 +46,22 @@ export default function Dashboard() {
   });
   function fetchData() {
     axios
-      .get("http://localhost:5000/kategori")
+      .get("http://localhost:3001/Kategori")
       .then((res) => {
         console.log(res);
         axios
-          .get("http://localhost:5000/indeks")
+          .get("http://localhost:3001/Indeks")
           .then((res2) => {
             console.log(res2);
             axios
-              .get("http://localhost:5000/lis")
+              .get("http://localhost:3001/List")
               .then((res3) => {
                 console.log(res3);
                 setState({
                   ...state,
-                  audio: res2.data.semuaIndeks.length,
-                  kategori: res.data.semuaKategori.length,
-                  sejarah: res3.data.semuaSejarah.length,
+                  audio: res2.data.Indeks.length,
+                  kategori: res.data.Kategori.length,
+                  sejarah: res3.data.Sejarah.length,
                 });
               })
               .catch((err) => {

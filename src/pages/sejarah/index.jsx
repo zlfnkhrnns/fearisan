@@ -54,15 +54,15 @@ export default function Sejarah() {
   const [state, setState] = React.useState({
     loading: true,
     columns: [
-      { title: "ID Sejarah", field: "indeksId" },
+      { title: "ID Sejarah", field: "idSejarah" },
       { title: "Kategori", field: "kategori" },
-      { title: "Nama Narator", field: "namaNarator" },
-      { title: "Nama Interview", field: "namaInterview" },
       { title: "Judul Sejarah", field: "judulSejarah" },
+      { title: "Nama Narator", field: "namaNarator" },
       { title: "Tempat Interview", field: "tempatInterview" },
-      { title: "Tanggal Interview", field: "tanggalInterview" },
-      { title: "Volume", field: "volume" },
-      { title: "Copyright", field: "copyright" },
+      { title: "Tanggal Interview", field: "tanggalInterview", type: "date", },
+      { title: "Rekaman", field: "rekaman", render: rowData => <audio controls> <source src={'http://localhost:3001/assets/rekaman/'+rowData.rekaman}/></audio> },
+      { title: "Foto", field: "foto", render: rowData => <img src={'http://localhost:3001/assets/foto/'+rowData.foto}style={{height: 40}}/> },
+
     ],
     data: [],
   });
@@ -71,10 +71,10 @@ export default function Sejarah() {
 
   function fetchKategori() {
     axios
-      .get("http://localhost:5000/kategori")
+      .get("http://localhost:3001/Kategori")
       .then((res) => {
         console.log(res);
-        setKategori(res.data.semuaKategori);
+        setKategori(res.data.Kategori);
         fetchData();
       })
       .catch((err) => {
@@ -85,10 +85,10 @@ export default function Sejarah() {
 
   function fetchIndeks() {
     axios
-      .get("http://localhost:5000/indeks")
+      .get("http://localhost:3001/Indeks")
       .then((res) => {
         console.log(res);
-        setIndeks(res.data.semuaIndeks);
+        setIndeks(res.data.Indeks);
       })
       .catch((err) => {
         console.log(err);
@@ -102,9 +102,9 @@ export default function Sejarah() {
       loading: true,
     });
     axios
-      .get("http://localhost:5000/lis")
+      .get("http://localhost:3001/List")
       .then((res) => {
-        let data = res.data.semuaSejarah;
+        let data = res.data.Sejarah;
         console.log("data", data);
         setState({
           ...state,
@@ -124,6 +124,7 @@ export default function Sejarah() {
   React.useEffect(() => {
     fetchData();
     fetchKategori();
+    fetchIndeks();
   }, []);
 
   const [open, setOpen] = React.useState(false);
@@ -137,7 +138,7 @@ export default function Sejarah() {
   };
 
   const [detail, setDetail] = React.useState({});
-  const [detail2, setDetail2] = React.useState({});
+  const [edit, setEdit] = React.useState({});
 
   const [open2, setOpen2] = React.useState(false);
 
@@ -159,54 +160,6 @@ export default function Sejarah() {
     setOpen3(false);
   };
 
-  const handleAdd = (e, form) => {
-    e.preventDefault();
-    setState({
-      ...state,
-      loading: true,
-    });
-    axios
-      .post("http://localhost:5000/lis", form)
-      .then((res) => {
-        console.log(res);
-        fetchData();
-        handleClose();
-      })
-      .catch((err) => {
-        handleClose();
-        console.log(err);
-        alert("Terjadi kesalahan, Reload aplikasi!");
-        setState({
-          ...state,
-          loading: false,
-        });
-      });
-  };
-
-  const handleEdit = (e, form) => {
-    e.preventDefault();
-    setState({
-      ...state,
-      loading: true,
-    });
-    axios
-      .put("http://localhost:5000/lis", form)
-      .then((res) => {
-        console.log(res);
-        fetchData();
-        handleClose3();
-      })
-      .catch((err) => {
-        handleClose3();
-        console.log(err);
-        alert("Terjadi kesalahan, Reload aplikasi!");
-        setState({
-          ...state,
-          loading: false,
-        });
-      });
-  };
-
   const handleDelete = (form) => {
     const confirmation = window.confirm(
       "Apakah kamu yakin ingin menghapus data ini?"
@@ -217,7 +170,7 @@ export default function Sejarah() {
         loading: true,
       });
       axios
-        .post("http://localhost:5000/lis/delete", form)
+        .delete("http://localhost:3001/List/"+form.idSejarah)
         .then((res) => {
           console.log(res);
           fetchData();
@@ -259,8 +212,33 @@ export default function Sejarah() {
             tooltip: "Detail",
             onClick: (event, rowData) => {
               // Do save operation
-              console.log(rowData);
-              setDetail(rowData);
+              console.log(
+                {kategoriId: rowData.kategoriId,
+                idSejarah: rowData.idSejarah,
+                namaNarator: rowData.namaNarator,
+                namaInterview: rowData.namaInterview,
+                judulSejarah: rowData.judulSejarah,
+                tempatInterview: rowData.tempatInterview,
+                tanggalInterview: rowData.tanggalInterview,
+                rekaman: <audio controls> <source src={'http://localhost:3001/assets/rekaman/'+rowData.rekaman}/></audio>,
+                volume: rowData.volume,
+                copyright: rowData.copiright,
+                foto: <img src={'http://localhost:3001/assets/foto/'+rowData.foto}style={{height: 40}}/>,
+                download: rowData.download,
+                indeks: rowData.indeks})
+              setDetail({kategoriId: rowData.kategoriId,
+                idSejarah: rowData.idSejarah,
+                namaNarator: rowData.namaNarator,
+                namaInterview: rowData.namaInterview,
+                judulSejarah: rowData.judulSejarah,
+                tempatInterview: rowData.tempatInterview,
+                tanggalInterview: rowData.tanggalInterview,
+                rekaman: 'http://localhost:3001/assets/rekaman/'+rowData.rekaman,
+                volume: rowData.volume,
+                copyright: rowData.copiright,
+                foto: 'http://localhost:3001/assets/foto/'+rowData.foto,
+                download: rowData.download,
+                indeks: rowData.indeks});
               handleClickOpen2();
             },
           },
@@ -270,7 +248,7 @@ export default function Sejarah() {
             onClick: (event, rowData) => {
               // Do save operation
               console.log(rowData);
-              setDetail2(rowData);
+              setEdit(rowData);
               handleClickOpen3();
             },
           },
@@ -316,14 +294,12 @@ export default function Sejarah() {
         kategori={kategori}
         open={open}
         handleClose={handleClose}
-        handleSubmit={handleAdd}
       />
       <EditDialog
         kategori={kategori}
         open={open3}
         handleClose={handleClose3}
-        handleSubmit={handleEdit}
-        detail={detail2}
+        edit={edit}
       />
     </>
   );

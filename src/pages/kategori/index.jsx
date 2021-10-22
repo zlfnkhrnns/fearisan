@@ -57,7 +57,7 @@ export default function Kategori() {
     columns: [
       { title: "ID Kategori", field: "idKategori" },
       { title: "Nama", field: "nama" },
-      { title: "Gambar", field: "gambar" },
+      { title: "Gambar", field: "gambar", render: rowData => <img src={'http://localhost:3001/assets/kategori/'+rowData.gambar}style={{height: 40}}/> },
     ],
     data: [],
   });
@@ -67,13 +67,13 @@ export default function Kategori() {
     ...state,
     loading: true,
     });
-    const url = 'http://localhost:5000/kategori'
+    const url = 'http://localhost:3001/Kategori'
     axios.get(url)
     .then(res =>{
-      let data = res.data.semuaKategori;
+      let data = res.data.Kategori;
       console.log("data", data)
       setState({
-         ...state,
+         ...state, 
         data: data,
         loading: false,
         });
@@ -87,6 +87,7 @@ export default function Kategori() {
       });
     });
   }
+  
   React.useEffect(() => {
     fetchData();
   }, []);
@@ -100,7 +101,7 @@ export default function Kategori() {
   };
 
   const [detail, setDetail] = React.useState({});
-  const [detail2, setDetail2] = React.useState({});
+  const [edit, setEdit] = React.useState({});
 
   const [open2, setOpen2] = React.useState(false);
   const handleClickOpen2 = () => {
@@ -118,56 +119,64 @@ export default function Kategori() {
     setOpen3(false);
   };
 
-  const handleAdd = (e, form) => {
-    e.preventDefault();
-    setState({
-      ...state,
-      loading: true,
-    });
-    axios
-      .post("http://localhost:5000/kategori", form)
-      .then(res =>{
-        console.log("data", data)
-        setState({
-           ...state,
-          data: data,
-      });
-      handleClose();
-    })
-      .catch((err) => {
-        handleClose();
-        console.log(err);
-        alert("Terjadi kesalahan, Reload aplikasi!");
-        setState({
-          ...state,
-          loading: false,
-        });
-      });
-  }
+  // const handleAdd = (e, form) => {
+  //   e.preventDefault();
+  //   setState({
+  //     ...state,
+  //     loading: true,
+  //   });
+  //   var bodyFormData = new FormData();
+  //   bodyFormData.append('nama', form.nama);
+  //   bodyFormData.append('gambar', form.gambar);
+  //   console.log('bodyForm', bodyFormData)
+  //   axios({
+  //     method: "post",
+  //     url: "http://localhost:3001/Kategori/"+form,
+  //     data: bodyFormData,
+  //     headers:{"Content-Type":"multipart/form-data"},
+  //   })
+  //     .catch((err) => {
+  //       handleClose();
+  //       console.log(err);
+  //       alert("Terjadi kesalahan, Reload aplikasi!");
+  //       setState({
+  //         ...state,
+  //         loading: false,
+  //       });
+  //     });
+  // }
 
-  const handleEdit = (e, form) => {
-    e.preventDefault();
-    setState({
-      ...state,
-      loading: true,
-    });
-    axios
-      .put("http://localhost:5000/kategori", form)
-      .then((res) => {
-        console.log(res);
-        fetchData();
-        handleClose3();
-      })
-      .catch((err) => {
-        handleClose3();
-        console.log(err);
-        alert("Terjadi kesalahan, Reload aplikasi!");
-        setState({
-          ...state,
-          loading: false,
-        });
-      });
-  };
+  // const handleEdit = (e, form) => {
+  //   e.preventDefault();
+  //   setState({
+  //     ...state,
+  //     loading: true,
+  //   });
+  //   var bodyFormData = new FormData();
+  //   bodyFormData.append('nama', form.nama);
+  //   bodyFormData.append('gambar', form.gambar);
+  //   console.log('bodyForm', bodyFormData)
+  //   axios({
+  //     method: "put",
+  //     url: "http://localhost:3001/Kategori/"+form.idKategori,
+  //     data: bodyFormData,
+  //     headers:{"Content-Type":"multipart/form-data"},
+  //   })
+  //     .then((res) => {
+  //       console.log(res);
+  //       fetchData();
+  //       handleClose3();
+  //     })
+  //     .catch((err) => {
+  //       handleClose3();
+  //       console.log(err);
+  //       alert("Terjadi kesalahan, Reload aplikasi!");
+  //       setState({
+  //         ...state,
+  //         loading: false,
+  //       });
+  //     });
+  // };
 
   const handleDelete = (form) => {
     const confirmation = window.confirm(
@@ -179,7 +188,7 @@ export default function Kategori() {
         loading: true,
       });
       axios
-        .delete("http://localhost:5000/kategori", form)
+        .delete("http://localhost:3001/Kategori/"+form.idKategori)
         .then((res) => {
           console.log(res);
           fetchData();
@@ -219,10 +228,15 @@ export default function Kategori() {
           {
             icon: () => <VisibilityIcon />,
             tooltip: "Detail",
-            onClick: (event, rowData) => {
+            onClick: (event, rowData ) => {
               // Do save operation
-              console.log(rowData);
-              setDetail(rowData);
+              console.log(
+                {idKategori: rowData.idKategori,
+                nama: rowData.nama,
+                gambar: <img src={'http://localhost:3001/assets/kategori/'+rowData.gambar}style={{height: 40}}/>})
+              setDetail({idKategori: rowData.idKategori,
+                nama: rowData.nama,
+                gambar: 'http://localhost:3001/assets/kategori/'+rowData.gambar});
               handleClickOpen2();
             },
           },
@@ -232,7 +246,7 @@ export default function Kategori() {
             onClick: (event, rowData) => {
               // Do save operation
               console.log(rowData);
-              setDetail2(rowData);
+              setEdit(rowData);
               handleClickOpen3();
             },
           },
@@ -274,16 +288,11 @@ export default function Kategori() {
         data={state.data}
       />
       <DetailDialog open={open2} handleClose={handleClose2} detail={detail} />
-      <AddDialog
-        open={open}
-        handleClose={handleClose}
-        handleSubmit={handleAdd}
+      <AddDialog open={open} handleClose={handleClose}
+        //handleSubmit={handleAdd}
       />
-      <EditDialog
-        open={open3}
-        handleClose={handleClose3}
-        handleSubmit={handleEdit}
-        detail={detail2}
+      <EditDialog open={open3} handleClose={handleClose3} edit={edit}
+        // handleSubmit={handleEdit}
       />
     </>
   );

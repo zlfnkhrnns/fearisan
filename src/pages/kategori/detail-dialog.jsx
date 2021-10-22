@@ -8,6 +8,7 @@ import DialogContent from "@material-ui/core/DialogContent";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import ReactMarkdown from "react-markdown";
 import Image from 'material-ui-image';
+import axios from "axios";
 
 function toNormalCase(str) {
   return str.replace(/([A-Z])/g, " $1").replace(/^./, function (str) {
@@ -15,17 +16,19 @@ function toNormalCase(str) {
   });
 }
 
+
 export default function DetailDialog(props) {
   const detailKeys = Object.keys(props.detail).filter((x) => x !== "tableData");
-  console.log(detailKeys);
+  
+  //const image = `![image](http://localhost:3001/assets/kategori/1634727841195--no_image.png)`
+  console.log(props.detail.gambar);
   return (
     <div>
       <Dialog
         open={props.open}
         onClose={props.handleClose}
         aria-labelledby="detail-dialog-title"
-        fullWidth
-      >
+        fullWidth>
         <DialogTitle id="detail-dialog-title" style={{ color: "#4C27D7" }}>
           Detail Kategori
         </DialogTitle>
@@ -34,14 +37,14 @@ export default function DetailDialog(props) {
             {detailKeys.map((d) => (
               <Grid
                 item
-                xs={d === "indeks" ? 12 : 6}
+                xs={d === "kategori" ? 12 : 6}
                 key={d}
               >
                 <Typography variant="subtitle1" style={{ fontWeight: "bold" }}>
-                  {d === "indeksId" ? "ID Kategori" : toNormalCase(d + "")}
+                  {d === "idKategori" ? "ID Kategori" : toNormalCase(d + "")}
                 </Typography>
 
-                {d === "indeks" ? (
+                {d === "kategori" ? (
                   <ReactMarkdown
                     source={props.detail[d]}
                     renderers={{ paragraph: Typography }}
@@ -51,6 +54,7 @@ export default function DetailDialog(props) {
                     {props.detail[d] + ""}
                   </Typography>
                 )}
+                {/* <ReactMarkdown source={image} renderers={renderers} />; */}
               </Grid>
             ))}
           </Grid>

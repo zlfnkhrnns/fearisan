@@ -50,7 +50,7 @@ export default function Audio() {
   const [state, setState] = React.useState({
     loading: true,
     columns: [
-      { title: "ID Sejarah", field: "idIndeks" },
+      { title: "ID Sejarah", field: "sejarahId" },
       { title: "Topik", field: "topik" },
       { title: "Menit", field: "menit" },
     ],
@@ -62,12 +62,12 @@ export default function Audio() {
       loading: true,
     });
     axios
-      .get("http://localhost:5000/indeks")
+      .get("http://localhost:3001/Indeks")
       .then((res) => {
         console.log(res);
         setState({
           ...state,
-          data: res.data.semuaIndeks,
+          data: res.data.Indeks,
           loading: false,
         });
       })
@@ -85,7 +85,7 @@ export default function Audio() {
     document.querySelector("#table-add").style.display = "none";
   }, []);
 
-  const handleDelete = (form) => {
+  const handleDelete = (rowData) => {
     const confirmation = window.confirm(
       "Apakah kamu yakin ingin menghapus data ini?"
     );
@@ -95,7 +95,7 @@ export default function Audio() {
         loading: true,
       });
       axios
-        .delete("http://localhost:5000/indeks", form)
+        .delete("http://localhost:3001/Indeks/"+rowData.idIndeks)
         .then((res) => {
           console.log(res);
           fetchData();
@@ -174,7 +174,7 @@ export default function Audio() {
           onRowAdd: (newData) =>
             new Promise((resolve) => {
               axios
-                .post("http://localhost:5000/indeks", newData)
+                .post("http://localhost:3001/Indeks", newData)
                 .then((res) => {
                   console.log(res);
                   fetchData();
@@ -189,7 +189,7 @@ export default function Audio() {
             new Promise((resolve) => {
               console.log(newData, oldData);
               axios
-                .put("http://localhost:5000/indeks", newData)
+                .put("http://localhost:3001/Indeks/"+newData.idIndeks, newData)
                 .then((res) => {
                   console.log(res);
                   resolve();

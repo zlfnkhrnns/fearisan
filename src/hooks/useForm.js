@@ -4,7 +4,7 @@ const useForm = (initialValue) => {
   const [form, setForm] = React.useState(initialValue);
   const handleChange = (event) => {
     event.persist();
-    setForm((form) => ({ ...form, [event.target.name]: event.target.value }));
+    setForm((form) => ({ ...form, [event.target.name]: event.target.value,  }));
   };
   return {
     form,

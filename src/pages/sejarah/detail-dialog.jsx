@@ -39,14 +39,14 @@ export default function DetailDialog(props) {
                 key={d}
               >
                 <Typography variant="subtitle1" style={{ fontWeight: "bold" }}>
-                  {d === "indeksId" ? "ID Sejarah" : toNormalCase(d + "")}
+                  {d === "idSejarah" ? "ID Sejarah" : toNormalCase(d + "")}
                 </Typography>
-
+                
                 {d === "indeks" ? (
-                  <ReactMarkdown
+                  <ReactMarkdown 
                     source={props.detail[d]}
                     renderers={{ paragraph: Typography }}
-                    multiline={f === "indeks"}
+                    multiline={d === "indeks"}
                     minRows={4}
                   />
                 ) : (
